@@ -29,4 +29,49 @@ public class WechatApiEndpoint {
      */
     public static final String CGI_BIN_CALLBACK_CHECK = "/cgi-bin/callback/check";
 
+    /**
+     * 上传图片（获取图片 URL）
+     */
+    public static final String CGI_BIN_MEDIA_UPLOAD_IMG = "/cgi-bin/media/uploadimg";
+
+    /**
+     * 新增草稿
+     */
+    public static final String CGI_BIN_DRAFT_ADD = "/cgi-bin/draft/add";
+
+    /**
+     * 获取草稿详情
+     */
+    public static final String CGI_BIN_DRAFT_GET = "/cgi-bin/draft/get";
+
+    /**
+     * 更新草稿
+     */
+    public static final String CGI_BIN_DRAFT_UPDATE = "/cgi-bin/draft/update";
+
+    /**
+     * 删除草稿
+     */
+    public static final String CGI_BIN_DRAFT_DELETE = "/cgi-bin/draft/delete";
+
+    /**
+     * 获取草稿列表
+     */
+    public static final String CGI_BIN_DRAFT_BATCHGET = "/cgi-bin/draft/batchget";
+
+    /**
+     * 获取草稿总数
+     */
+    public static final String CGI_BIN_DRAFT_COUNT = "/cgi-bin/draft/count";
+
+    /**
+     * 提交发布
+     */
+    public static final String CGI_BIN_PUBLISH_SUBMIT = "/cgi-bin/whatsnew/publish";
+
+    /**
+     * 查询发布状态
+     */
+    public static final String CGI_BIN_PUBLISH_GET = "/cgi-bin/whatsnew/publish/get";
+
 }

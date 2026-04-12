@@ -2,9 +2,15 @@ package com.shazam.wechat.sdk;
 
 import com.shazam.wechat.sdk.api.AuthApi;
 import com.shazam.wechat.sdk.api.CallbackApi;
+import com.shazam.wechat.sdk.api.draft.DraftApi;
+import com.shazam.wechat.sdk.api.material.MaterialApi;
+import com.shazam.wechat.sdk.api.publish.PublishApi;
 import com.shazam.wechat.sdk.http.HttpClient;
 import com.shazam.wechat.sdk.impl.AuthApiImpl;
 import com.shazam.wechat.sdk.impl.CallbackApiImpl;
+import com.shazam.wechat.sdk.impl.draft.DraftApiImpl;
+import com.shazam.wechat.sdk.impl.material.MaterialApiImpl;
+import com.shazam.wechat.sdk.impl.publish.PublishApiImpl;
 
 /**
  * 微信 SDK 客户端主入口
@@ -24,6 +30,25 @@ import com.shazam.wechat.sdk.impl.CallbackApiImpl;
  * // 网络通信检测
  * CallbackCheckResponse checkResp = client.callback().check();
  *
+ * // 上传图片
+ * UploadImageResponse imgResp = client.material().uploadImage(new File("cover.jpg"));
+ *
+ * // 新增草稿
+ * DraftAddRequest draftRequest = new DraftAddRequest.Builder()
+ *     .addArticle(new DraftArticle.Builder()
+ *         .title("标题")
+ *         .content("内容")
+ *         .thumbMediaId(imgResp.getUrl())
+ *         .build())
+ *     .build();
+ * DraftAddResponse draftResp = client.draft().addDraft(draftRequest);
+ *
+ * // 提交发布
+ * PublishSubmitRequest publishRequest = new PublishSubmitRequest.Builder()
+ *     .mediaId(draftResp.getMediaId())
+ *     .build();
+ * PublishSubmitResponse publishResp = client.publish().submitPublish(publishRequest);
+ *
  * client.shutdown();
  * </pre>
  */
@@ -33,6 +58,9 @@ public class WechatClient {
     private final HttpClient httpClient;
     private final AuthApi authApi;
     private final CallbackApi callbackApi;
+    private final MaterialApi materialApi;
+    private final DraftApi draftApi;
+    private final PublishApi publishApi;
 
     /**
      * 创建微信 SDK 客户端
@@ -44,6 +72,9 @@ public class WechatClient {
         this.httpClient = new HttpClient(config.getConnectTimeout(), config.getReadTimeout());
         this.authApi = new AuthApiImpl(config.getAppId(), config.getAppSecret(), httpClient, config.getTokenCache());
         this.callbackApi = new CallbackApiImpl(httpClient);
+        this.materialApi = new MaterialApiImpl(httpClient, authApi);
+        this.draftApi = new DraftApiImpl(httpClient, authApi);
+        this.publishApi = new PublishApiImpl(httpClient, authApi);
     }
 
     /**
@@ -62,6 +93,33 @@ public class WechatClient {
      */
     public CallbackApi callback() {
         return callbackApi;
+    }
+
+    /**
+     * 获取素材管理 API
+     *
+     * @return MaterialApi 实例
+     */
+    public MaterialApi material() {
+        return materialApi;
+    }
+
+    /**
+     * 获取草稿管理 API
+     *
+     * @return DraftApi 实例
+     */
+    public DraftApi draft() {
+        return draftApi;
+    }
+
+    /**
+     * 获取发布管理 API
+     *
+     * @return PublishApi 实例
+     */
+    public PublishApi publish() {
+        return publishApi;
     }
 
     /**

@@ -114,4 +114,23 @@ public class WechatErrorCode {
      */
     public static final int ACCOUNT_FROZEN = 50007;
 
+    /**
+     * 素材相关错误码
+     */
+    public static final int MEDIA_INVALID_TYPE = 40004;
+    public static final int MEDIA_SIZE_EXCEED = 40005;
+    public static final int MEDIA_INVALID_ID = 40007;
+
+    /**
+     * 草稿相关错误码
+     */
+    public static final int DRAFT_NOT_EXIST = 40007;
+    public static final int DRAFT_INVALID_CONTENT = 40015;
+
+    /**
+     * 发布相关错误码
+     */
+    public static final int PUBLISH_LIMIT_EXCEED = 45009;
+    public static final int PUBLISH_STATUS_FAIL = 53404;
+
 }

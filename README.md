@@ -1,0 +1,387 @@
+# 微信公众号 SDK (WeChat SDK for Java)
+
+[![Java](https://img.shields.io/badge/Java-8+-blue.svg)](https://openjdk.java.net/)
+[![Maven](https://img.shields.io/badge/Maven-3.0+-red.svg)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+一个简洁、高效的微信公众号 API SDK，提供认证、素材管理、草稿箱管理、发布等功能的封装。
+
+---
+
+## 特性
+
+- ✅ **简洁 API** - 流式构建器模式，代码清晰易读
+- ✅ **自动 Token 管理** - 内置缓存机制，自动刷新 access_token
+- ✅ **完整功能** - 支持认证、素材、草稿、发布等核心 API
+- ✅ **异常处理** - 统一的异常处理机制，详细的错误码说明
+- ✅ **易于扩展** - 模块化设计，支持自定义扩展
+
+---
+
+## 快速开始
+
+### 1. 添加依赖
+
+```xml
+<dependencies>
+    <!-- JSON 处理 -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.15.2</version>
+    </dependency>
+
+    <!-- 日志 API -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.9</version>
+    </dependency>
+
+    <!-- 测试依赖 -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+### 2. 创建客户端
+
+```java
+import com.shazam.wechat.sdk.WechatClient;
+import com.shazam.wechat.sdk.WechatConfig;
+
+// 创建配置
+WechatConfig config = new WechatConfig.Builder()
+    .appId("your_app_id")           // 替换为你的 AppID
+    .appSecret("your_app_secret")   // 替换为你的 AppSecret
+    .build();
+
+// 创建客户端
+WechatClient client = new WechatClient(config);
+```
+
+### 3. 发布文章（完整流程）
+
+```java
+// 1. 获取 access_token（自动缓存）
+AccessTokenResponse tokenResp = client.auth().getStableAccessToken();
+
+// 2. 上传封面图片
+File coverImage = new File("/path/to/cover.jpg");
+UploadImageResponse imgResp = client.material().uploadImage(coverImage);
+
+// 3. 创建草稿
+DraftArticle article = new DraftArticle.Builder()
+    .title("我的文章标题")
+    .author("作者名")
+    .content("<h1>文章标题</h1><p>文章 HTML 内容...</p>")
+    .digest("文章摘要")
+    .thumbMediaId(imgResp.getUrl())
+    .needOpenComment(1)
+    .onlyFansCanComment(0)
+    .contentSourceUrl("https://example.com")
+    .build();
+
+DraftAddRequest draftRequest = new DraftAddRequest.Builder()
+    .addArticle(article)
+    .build();
+
+DraftAddResponse draftResp = client.draft().addDraft(draftRequest);
+String mediaId = draftResp.getMediaId();
+
+// 4. 提交发布
+PublishSubmitRequest publishRequest = new PublishSubmitRequest.Builder()
+    .mediaId(mediaId)
+    .build();
+
+PublishSubmitResponse publishResp = client.publish().submitPublish(publishRequest);
+String publishId = publishResp.getPublishId();
+
+// 5. 查询发布状态
+Thread.sleep(3000);  // 等待发布完成
+PublishGetResponse statusResp = client.publish().getPublishStatus(publishId);
+
+if (statusResp.isPublished()) {
+    System.out.println("发布成功！文章链接：" + statusResp.getArticleUrl());
+}
+
+// 6. 关闭客户端
+client.shutdown();
+```
+
+---
+
+## 功能模块
+
+### 认证 API (`client.auth()`)
+
+```java
+// 获取稳定版 access_token（推荐）
+AccessTokenResponse token = client.auth().getStableAccessToken();
+
+// 强制刷新 access_token
+AccessTokenResponse token = client.auth().getStableAccessToken(true);
+
+// 获取普通版 access_token（不推荐）
+AccessTokenResponse token = client.auth().fetchNewAccessToken();
+```
+
+### 素材管理 API (`client.material()`)
+
+```java
+// 上传图片
+UploadImageResponse response = client.material().uploadImage(new File("cover.jpg"));
+String imageUrl = response.getUrl();
+```
+
+### 草稿管理 API (`client.draft()`)
+
+```java
+// 新增草稿
+DraftAddRequest request = new DraftAddRequest.Builder()
+    .addArticle(new DraftArticle.Builder()
+        .title("标题")
+        .content("内容")
+        .thumbMediaId("media_id")
+        .build())
+    .build();
+DraftAddResponse response = client.draft().addDraft(request);
+
+// 获取草稿详情
+DraftGetResponse response = client.draft().getDraft("media_id");
+
+// 删除草稿
+DraftDeleteResponse response = client.draft().deleteDraft("media_id");
+
+// 更新草稿
+DraftUpdateRequest request = new DraftUpdateRequest.Builder()
+    .mediaId("media_id")
+    .index(0)
+    .articles(articleBuilder)
+    .build();
+DraftUpdateResponse response = client.draft().updateDraft(request);
+
+// 获取草稿列表
+DraftBatchGetResponse response = client.draft().batchGetDrafts(0, 20);
+
+// 获取草稿总数
+DraftCountResponse response = client.draft().countDrafts();
+```
+
+### 发布管理 API (`client.publish()`)
+
+```java
+// 提交发布
+PublishSubmitRequest request = new PublishSubmitRequest.Builder()
+    .mediaId("media_id")
+    .build();
+PublishSubmitResponse response = client.publish().submitPublish(request);
+
+// 查询发布状态
+PublishGetResponse response = client.publish().getPublishStatus("publish_id");
+```
+
+### 回调检测 API (`client.callback()`)
+
+```java
+// 网络通信检测
+CallbackCheckResponse response = client.callback().check();
+```
+
+---
+
+## 高级配置
+
+### 自定义超时时间
+
+```java
+WechatConfig config = new WechatConfig.Builder()
+    .appId("your_app_id")
+    .appSecret("your_app_secret")
+    .connectTimeout(10000)   // 连接超时 10 秒
+    .readTimeout(30000)      // 读取超时 30 秒
+    .build();
+```
+
+### 自定义 Token 缓存
+
+```java
+// 实现 TokenCache 接口（如使用 Redis）
+TokenCache customCache = new RedisTokenCache();
+
+WechatConfig config = new WechatConfig.Builder()
+    .appId("your_app_id")
+    .appSecret("your_app_secret")
+    .tokenCache(customCache)
+    .build();
+```
+
+### 多图文消息发布
+
+```java
+DraftArticle article1 = new DraftArticle.Builder()
+    .title("第一篇标题")
+    .content("第一篇内容...")
+    .thumbMediaId("media_id_1")
+    .build();
+
+DraftArticle article2 = new DraftArticle.Builder()
+    .title("第二篇标题")
+    .content("第二篇内容...")
+    .thumbMediaId("media_id_2")
+    .build();
+
+DraftAddRequest request = new DraftAddRequest.Builder()
+    .addArticle(article1)
+    .addArticle(article2)
+    .build();
+
+DraftAddResponse response = client.draft().addDraft(request);
+```
+
+---
+
+## 错误处理
+
+```java
+import com.shazam.wechat.sdk.exception.WechatApiException;
+
+try {
+    DraftAddResponse response = client.draft().addDraft(request);
+} catch (WechatApiException e) {
+    System.err.println("错误码：" + e.getErrorCode());
+    System.err.println("错误消息：" + e.getErrorMsg());
+    
+    // 根据错误码处理
+    switch (e.getErrorCode()) {
+        case 40001:
+            System.err.println("Token 无效，请检查 access_token");
+            break;
+        case 40007:
+            System.err.println("素材 media_id 不存在");
+            break;
+        case 45009:
+            System.err.println("超过频率限制");
+            break;
+        default:
+            System.err.println("其他错误：" + e.getErrorMsg());
+    }
+}
+```
+
+### 常见错误码
+
+| 错误码 | 说明 | 解决方案 |
+|-------|------|---------|
+| 40001 | access_token 无效 | 检查 token 是否过期 |
+| 40007 | 素材 media_id 不存在 | 检查 media_id 是否正确 |
+| 40013 | AppID 不合法 | 检查 AppID 配置 |
+| 40125 | AppSecret 无效 | 检查 AppSecret 配置 |
+| 40164 | IP 不在白名单 | 在微信后台添加 IP 白名单 |
+| 45009 | 超过频率限制 | 降低调用频率或调用 clear_quota |
+| 53404 | 账号被限制带货能力 | 删除商品后重试 |
+
+---
+
+## 项目结构
+
+```
+src/main/java/com/shazam/wechat/sdk/
+├── WechatClient.java              # 客户端主入口
+├── WechatConfig.java              # 配置类
+├── api/
+│   ├── WechatApi.java             # API 基础接口
+│   ├── AuthApi.java               # 认证 API
+│   ├── CallbackApi.java           # 回调检测 API
+│   ├── material/
+│   │   └── MaterialApi.java       # 素材管理 API
+│   ├── draft/
+│   │   └── DraftApi.java          # 草稿管理 API
+│   └── publish/
+│       └── PublishApi.java        # 发布管理 API
+├── impl/
+│   ├── AbstractWechatApi.java     # API 抽象基类
+│   ├── AuthApiImpl.java           # 认证 API 实现
+│   ├── CallbackApiImpl.java       # 回调检测 API 实现
+│   ├── material/
+│   │   └── MaterialApiImpl.java   # 素材 API 实现
+│   ├── draft/
+│   │   └── DraftApiImpl.java      # 草稿 API 实现
+│   └── publish/
+│       └── PublishApiImpl.java    # 发布 API 实现
+├── model/
+│   ├── request/                   # 请求模型
+│   │   ├── DraftAddRequest.java
+│   │   ├── DraftArticle.java
+│   │   ├── DraftUpdateRequest.java
+│   │   ├── PublishSubmitRequest.java
+│   │   └── ...
+│   └── response/                  # 响应模型
+│       ├── DraftAddResponse.java
+│       ├── DraftGetResponse.java
+│       ├── PublishSubmitResponse.java
+│       └── ...
+├── http/
+│   ├── HttpClient.java            # HTTP 客户端
+│   └── JsonUtil.java              # JSON 工具
+├── cache/
+│   ├── TokenCache.java            # Token 缓存接口
+│   └── DefaultTokenCache.java     # 默认缓存实现
+├── constant/
+│   ├── WechatApiEndpoint.java     # API 端点常量
+│   └── WechatErrorCode.java       # 错误码常量
+└── exception/
+    ├── WechatException.java       # 基础异常
+    └── WechatApiException.java    # API 异常
+```
+
+---
+
+## 运行测试
+
+```bash
+# 运行单元测试
+mvn test
+
+# 运行特定测试类
+mvn test -Dtest=WechatPublishTest
+```
+
+---
+
+## 注意事项
+
+1. **Access Token**: SDK 会自动管理 token 缓存（默认 2 小时），无需手动刷新
+2. **图片上传**: 图文消息的图片必须通过微信接口上传，不能使用外部链接
+3. **发布限制**: 公众号每天发布次数有限（通常 1-2 次），请合理使用
+4. **IP 白名单**: 确保服务器 IP 已在微信后台配置白名单
+5. **HTML 内容**: 文章内容需符合微信 HTML 规范，不支持某些标签
+
+---
+
+## 参考文档
+
+- [微信开放平台 - 草稿箱管理](https://developers.weixin.qq.com/doc/subscription/api/draftbox/draftmanage/api_draft_add.html)
+- [微信开放平台 - 发布能力](https://developers.weixin.qq.com/doc/offiaccount/Draft_Box/Add_Draft.html)
+- [微信开放平台 - 接口说明](https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Access_Overview.html)
+
+---
+
+## 许可证
+
+MIT License
+
+---
+
+## 版本历史
+
+### v1.0.0 (2026-04-12)
+- ✅ 认证 API（access_token 获取）
+- ✅ 素材管理 API（图片上传）
+- ✅ 草稿管理 API（增删改查）
+- ✅ 发布管理 API（提交发布、查询状态）
+- ✅ 回调检测 API

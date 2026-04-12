@@ -4,7 +4,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.0+-red.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-一个简洁、高效的微信公众号 API SDK，提供认证、素材管理、草稿箱管理、发布、菜单管理等功能的封装。
+一个简洁、高效的微信公众号 API SDK，提供认证、素材管理、草稿箱管理、发布、菜单管理、留言管理等功能的封装。
 
 ---
 
@@ -12,7 +12,7 @@
 
 - ✅ **简洁 API** - 流式构建器模式，代码清晰易读
 - ✅ **自动 Token 管理** - 内置缓存机制，自动刷新 access_token
-- ✅ **完整功能** - 支持认证、素材、草稿、发布、菜单等核心 API
+- ✅ **完整功能** - 支持认证、素材、草稿、发布、菜单、留言等核心 API
 - ✅ **异常处理** - 统一的异常处理机制，详细的错误码说明
 - ✅ **易于扩展** - 模块化设计，支持自定义扩展
 
@@ -147,6 +147,46 @@ MenuGetResponse menuGetResponse = client.menu().getMenu();
 MenuDeleteResponse deleteResponse = client.menu().deleteMenu();
 ```
 
+### 5. 留言管理 API
+
+```java
+// 打开评论
+CommentOpenRequest openRequest = new CommentOpenRequest.Builder()
+    .msgDataId(1234567890L)
+    .index(0)
+    .build();
+client.comment().openComment(openRequest);
+
+// 查看评论
+CommentGetRequest getRequest = new CommentGetRequest.Builder()
+    .msgDataId(1234567890L)
+    .begin(0)
+    .count(20)
+    .build();
+CommentGetResponse getResponse = client.comment().getComments(getRequest);
+
+// 标记精选
+CommentMarkRequest markRequest = new CommentMarkRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .build();
+client.comment().markComment(markRequest);
+
+// 回复评论
+CommentReplyRequest replyRequest = new CommentReplyRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .content("感谢支持！")
+    .build();
+client.comment().replyComment(replyRequest);
+
+// 关闭评论
+CommentCloseRequest closeRequest = new CommentCloseRequest.Builder()
+    .msgDataId(1234567890L)
+    .build();
+client.comment().closeComment(closeRequest);
+```
+
 ---
 
 ## 功能模块
@@ -249,6 +289,67 @@ MenuGetResponse response = client.menu().getMenu();
 MenuDeleteResponse response = client.menu().deleteMenu();
 ```
 
+### 留言管理 API (`client.comment()`)
+
+```java
+// 打开评论
+CommentOpenRequest request = new CommentOpenRequest.Builder()
+    .msgDataId(1234567890L)
+    .index(0)
+    .build();
+client.comment().openComment(request);
+
+// 查看评论
+CommentGetRequest request = new CommentGetRequest.Builder()
+    .msgDataId(1234567890L)
+    .begin(0)
+    .count(20)
+    .build();
+CommentGetResponse response = client.comment().getComments(request);
+
+// 标记精选
+CommentMarkRequest request = new CommentMarkRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .build();
+client.comment().markComment(request);
+
+// 取消精选
+CommentUnmarkRequest request = new CommentUnmarkRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .build();
+client.comment().unmarkComment(request);
+
+// 删除评论
+CommentDeleteRequest request = new CommentDeleteRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .build();
+client.comment().deleteComment(request);
+
+// 回复评论
+CommentReplyRequest request = new CommentReplyRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .content("感谢支持！")
+    .build();
+client.comment().replyComment(request);
+
+// 删除回复
+CommentDeleteReplyRequest request = new CommentDeleteReplyRequest.Builder()
+    .msgDataId(1234567890L)
+    .commentId(987654321L)
+    .build();
+client.comment().deleteReply(request);
+
+// 关闭评论
+CommentCloseRequest request = new CommentCloseRequest.Builder()
+    .msgDataId(1234567890L)
+    .build();
+client.comment().closeComment(request);
+```
+
 ### 回调检测 API (`client.callback()`)
 
 ```java
@@ -322,6 +423,15 @@ DraftAddResponse response = client.draft().addDraft(request);
 | `pic_photo_or_album` | `asPicPhotoOrAlbum(key)` | 拍照或相册 |
 | `pic_weixin` | `asPicWeiXin(key)` | 微信相册 |
 | `location_select` | `asLocationSelect(key)` | 地理位置 |
+
+### 留言管理参数
+
+| 参数 | 说明 |
+|------|------|
+| `msg_data_id` | 群发返回的图文消息 ID（必填） |
+| `index` | 多图文时指定第几篇（从 0 开始） |
+| `comment_id` | 评论 ID |
+| `content` | 回复内容（不超过 200 字） |
 
 ### 菜单配置示例
 
@@ -403,6 +513,11 @@ try {
 | 40164 | IP 不在白名单 | 在微信后台添加 IP 白名单 |
 | 45009 | 超过频率限制 | 降低调用频率或调用 clear_quota |
 | 53404 | 账号被限制带货能力 | 删除商品后重试 |
+| 88000 | 没有留言权限 | 确认账号类型和权限 |
+| 88001 | 图文不存在 | 检查 msg_data_id 是否正确 |
+| 88002 | 文章存在敏感信息 | 检查文章内容 |
+| 88003 | 评论不存在 | 检查 comment_id 是否正确 |
+| 88004 | 回复内容过长 | 缩短回复内容至 200 字以内 |
 
 ---
 
@@ -422,8 +537,10 @@ src/main/java/com/shazam/wechat/sdk/
 │   │   └── DraftApi.java          # 草稿管理 API
 │   ├── publish/
 │   │   └── PublishApi.java        # 发布管理 API
-│   └── menu/
-│       └── MenuApi.java           # 菜单管理 API
+│   ├── menu/
+│   │   └── MenuApi.java           # 菜单管理 API
+│   └── comment/
+│       └── CommentApi.java        # 留言管理 API
 ├── impl/
 │   ├── AbstractWechatApi.java     # API 抽象基类
 │   ├── AuthApiImpl.java           # 认证 API 实现
@@ -434,8 +551,10 @@ src/main/java/com/shazam/wechat/sdk/
 │   │   └── DraftApiImpl.java      # 草稿 API 实现
 │   ├── publish/
 │   │   └── PublishApiImpl.java    # 发布 API 实现
-│   └── menu/
-│       └── MenuApiImpl.java       # 菜单 API 实现
+│   ├── menu/
+│   │   └── MenuApiImpl.java       # 菜单 API 实现
+│   └── comment/
+│       └── CommentApiImpl.java    # 留言 API 实现
 ├── model/
 │   ├── request/                   # 请求模型
 │   │   ├── DraftAddRequest.java
@@ -444,6 +563,14 @@ src/main/java/com/shazam/wechat/sdk/
 │   │   ├── PublishSubmitRequest.java
 │   │   ├── MenuButton.java
 │   │   ├── MenuCreateRequest.java
+│   │   ├── CommentOpenRequest.java
+│   │   ├── CommentCloseRequest.java
+│   │   ├── CommentGetRequest.java
+│   │   ├── CommentMarkRequest.java
+│   │   ├── CommentUnmarkRequest.java
+│   │   ├── CommentDeleteRequest.java
+│   │   ├── CommentReplyRequest.java
+│   │   ├── CommentDeleteReplyRequest.java
 │   │   └── ...
 │   └── response/                  # 响应模型
 │       ├── DraftAddResponse.java
@@ -452,6 +579,14 @@ src/main/java/com/shazam/wechat/sdk/
 │       ├── MenuCreateResponse.java
 │       ├── MenuGetResponse.java
 │       ├── MenuDeleteResponse.java
+│       ├── CommentOpenResponse.java
+│       ├── CommentCloseResponse.java
+│       ├── CommentGetResponse.java
+│       ├── CommentInfo.java
+│       ├── CommentMarkResponse.java
+│       ├── CommentUnmarkResponse.java
+│       ├── CommentDeleteResponse.java
+│       ├── CommentReplyResponse.java
 │       └── ...
 ├── http/
 │   ├── HttpClient.java            # HTTP 客户端
@@ -506,6 +641,11 @@ MIT License
 ---
 
 ## 版本历史
+
+### v1.2.0 (2026-04-12)
+- ✅ 留言管理 API（打开/关闭评论、查看评论、管理评论）
+- ✅ 支持评论标记精选、取消精选
+- ✅ 支持评论回复、删除回复
 
 ### v1.1.0 (2026-04-12)
 - ✅ 菜单管理 API（创建、查询、删除）

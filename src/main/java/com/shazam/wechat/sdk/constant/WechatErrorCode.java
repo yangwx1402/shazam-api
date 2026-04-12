@@ -146,4 +146,14 @@ public class WechatErrorCode {
     public static final int MENU_PERMISSION_DENIED = 45008;
     public static final int MENU_DAILY_LIMIT_EXCEED = 45029;
 
+    /**
+     * 留言相关错误码
+     */
+    public static final int COMMENT_NO_PRIVILEGE = 88000;
+    public static final int COMMENT_MSG_DATA_NOT_EXISTS = 88001;
+    public static final int COMMENT_ARTICLE_LIMIT = 88002;
+    public static final int COMMENT_NOT_FOUND = 88003;
+    public static final int COMMENT_CONTENT_TOO_LONG = 88004;
+    public static final int COMMENT_INVALID_OPERATION = 88005;
+
 }

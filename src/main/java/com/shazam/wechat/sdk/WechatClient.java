@@ -2,6 +2,7 @@ package com.shazam.wechat.sdk;
 
 import com.shazam.wechat.sdk.api.AuthApi;
 import com.shazam.wechat.sdk.api.CallbackApi;
+import com.shazam.wechat.sdk.api.comment.CommentApi;
 import com.shazam.wechat.sdk.api.draft.DraftApi;
 import com.shazam.wechat.sdk.api.material.MaterialApi;
 import com.shazam.wechat.sdk.api.menu.MenuApi;
@@ -9,6 +10,7 @@ import com.shazam.wechat.sdk.api.publish.PublishApi;
 import com.shazam.wechat.sdk.http.HttpClient;
 import com.shazam.wechat.sdk.impl.AuthApiImpl;
 import com.shazam.wechat.sdk.impl.CallbackApiImpl;
+import com.shazam.wechat.sdk.impl.comment.CommentApiImpl;
 import com.shazam.wechat.sdk.impl.draft.DraftApiImpl;
 import com.shazam.wechat.sdk.impl.material.MaterialApiImpl;
 import com.shazam.wechat.sdk.impl.menu.MenuApiImpl;
@@ -75,6 +77,7 @@ public class WechatClient {
     private final DraftApi draftApi;
     private final PublishApi publishApi;
     private final MenuApi menuApi;
+    private final CommentApi commentApi;
 
     /**
      * 创建微信 SDK 客户端
@@ -90,6 +93,7 @@ public class WechatClient {
         this.draftApi = new DraftApiImpl(httpClient, authApi);
         this.publishApi = new PublishApiImpl(httpClient, authApi);
         this.menuApi = new MenuApiImpl(httpClient, authApi);
+        this.commentApi = new CommentApiImpl(httpClient, authApi);
     }
 
     /**
@@ -144,6 +148,15 @@ public class WechatClient {
      */
     public MenuApi menu() {
         return menuApi;
+    }
+
+    /**
+     * 获取留言管理 API
+     *
+     * @return CommentApi 实例
+     */
+    public CommentApi comment() {
+        return commentApi;
     }
 
     /**

@@ -94,4 +94,44 @@ public class WechatApiEndpoint {
      */
     public static final String CGI_BIN_GET_CURRENT_SELFMENU_INFO = "/cgi-bin/get_current_selfmenu_info";
 
+    /**
+     * 打开已群发文章评论
+     */
+    public static final String CGI_BIN_COMMENT_OPEN = "/cgi-bin/comment/open";
+
+    /**
+     * 关闭已群发文章评论
+     */
+    public static final String CGI_BIN_COMMENT_CLOSE = "/cgi-bin/comment/close";
+
+    /**
+     * 获取已群发文章评论
+     */
+    public static final String CGI_BIN_COMMENT_GET = "/cgi-bin/comment/get";
+
+    /**
+     * 将评论标记为精选
+     */
+    public static final String CGI_BIN_COMMENT_MARK = "/cgi-bin/comment/mark";
+
+    /**
+     * 将评论取消精选
+     */
+    public static final String CGI_BIN_COMMENT_UNMARK = "/cgi-bin/comment/unmark";
+
+    /**
+     * 删除评论
+     */
+    public static final String CGI_BIN_COMMENT_DELETE = "/cgi-bin/comment/delete";
+
+    /**
+     * 回复评论
+     */
+    public static final String CGI_BIN_COMMENT_REPLY = "/cgi-bin/comment/reply";
+
+    /**
+     * 删除回复
+     */
+    public static final String CGI_BIN_COMMENT_DELETE_REPLY = "/cgi-bin/comment/delreply";
+
 }

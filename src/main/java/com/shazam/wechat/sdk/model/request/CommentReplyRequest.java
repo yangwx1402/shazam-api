@@ -1,0 +1,133 @@
+package com.shazam.wechat.sdk.model.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * 回复评论请求
+ */
+public class CommentReplyRequest {
+
+    /**
+     * 群发返回的 msg_data_id（必填）
+     */
+    @JsonProperty("msg_data_id")
+    private Long msgDataId;
+
+    /**
+     * 多图文时指定第几篇，从 0 开始（选填，默认 0）
+     */
+    @JsonProperty("index")
+    private Integer index;
+
+    /**
+     * 评论 ID（必填）
+     */
+    @JsonProperty("comment_id")
+    private Long commentId;
+
+    /**
+     * 回复内容（必填，不超过 200 字）
+     */
+    @JsonProperty("content")
+    private String content;
+
+    private CommentReplyRequest() {
+    }
+
+    public Long getMsgDataId() {
+        return msgDataId;
+    }
+
+    public void setMsgDataId(Long msgDataId) {
+        this.msgDataId = msgDataId;
+    }
+
+    public Integer getIndex() {
+        return index;
+    }
+
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
+
+    public Long getCommentId() {
+        return commentId;
+    }
+
+    public void setCommentId(Long commentId) {
+        this.commentId = commentId;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public static class Builder {
+        private Long msgDataId;
+        private Integer index = 0;
+        private Long commentId;
+        private String content;
+
+        /**
+         * 设置群发返回的 msg_data_id
+         *
+         * @param msgDataId msg_data_id
+         * @return Builder
+         */
+        public Builder msgDataId(Long msgDataId) {
+            this.msgDataId = msgDataId;
+            return this;
+        }
+
+        /**
+         * 设置多图文时指定第几篇
+         *
+         * @param index 索引（从 0 开始）
+         * @return Builder
+         */
+        public Builder index(Integer index) {
+            this.index = index;
+            return this;
+        }
+
+        /**
+         * 设置评论 ID
+         *
+         * @param commentId 评论 ID
+         * @return Builder
+         */
+        public Builder commentId(Long commentId) {
+            this.commentId = commentId;
+            return this;
+        }
+
+        /**
+         * 设置回复内容（不超过 200 字）
+         *
+         * @param content 回复内容
+         * @return Builder
+         */
+        public Builder content(String content) {
+            this.content = content;
+            return this;
+        }
+
+        /**
+         * 构建请求对象
+         *
+         * @return CommentReplyRequest
+         */
+        public CommentReplyRequest build() {
+            CommentReplyRequest request = new CommentReplyRequest();
+            request.msgDataId = this.msgDataId;
+            request.index = this.index;
+            request.commentId = this.commentId;
+            request.content = this.content;
+            return request;
+        }
+    }
+}

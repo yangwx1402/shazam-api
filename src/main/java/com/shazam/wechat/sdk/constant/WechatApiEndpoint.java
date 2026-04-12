@@ -74,4 +74,24 @@ public class WechatApiEndpoint {
      */
     public static final String CGI_BIN_PUBLISH_GET = "/cgi-bin/whatsnew/publish/get";
 
+    /**
+     * 创建自定义菜单
+     */
+    public static final String CGI_BIN_MENU_CREATE = "/cgi-bin/menu/create";
+
+    /**
+     * 获取自定义菜单
+     */
+    public static final String CGI_BIN_MENU_GET = "/cgi-bin/menu/get";
+
+    /**
+     * 删除自定义菜单
+     */
+    public static final String CGI_BIN_MENU_DELETE = "/cgi-bin/menu/delete";
+
+    /**
+     * 获取当前自定义菜单配置
+     */
+    public static final String CGI_BIN_GET_CURRENT_SELFMENU_INFO = "/cgi-bin/get_current_selfmenu_info";
+
 }

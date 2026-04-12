@@ -133,4 +133,17 @@ public class WechatErrorCode {
     public static final int PUBLISH_LIMIT_EXCEED = 45009;
     public static final int PUBLISH_STATUS_FAIL = 53404;
 
+    /**
+     * 菜单相关错误码
+     */
+    public static final int MENU_INVALID_BUTTON_NAME = 40018;
+    public static final int MENU_BUTTON_NAME_TOO_LONG = 40019;
+    public static final int MENU_INVALID_BUTTON_TYPE = 40020;
+    public static final int MENU_BUTTON_COUNT_EXCEED = 40021;
+    public static final int MENU_BUTTON_LEVEL_EXCEED = 40022;
+    public static final int MENU_INVALID_KEY = 40023;
+    public static final int MENU_INVALID_URL = 40024;
+    public static final int MENU_PERMISSION_DENIED = 45008;
+    public static final int MENU_DAILY_LIMIT_EXCEED = 45029;
+
 }

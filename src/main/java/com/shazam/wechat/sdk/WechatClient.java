@@ -4,12 +4,14 @@ import com.shazam.wechat.sdk.api.AuthApi;
 import com.shazam.wechat.sdk.api.CallbackApi;
 import com.shazam.wechat.sdk.api.draft.DraftApi;
 import com.shazam.wechat.sdk.api.material.MaterialApi;
+import com.shazam.wechat.sdk.api.menu.MenuApi;
 import com.shazam.wechat.sdk.api.publish.PublishApi;
 import com.shazam.wechat.sdk.http.HttpClient;
 import com.shazam.wechat.sdk.impl.AuthApiImpl;
 import com.shazam.wechat.sdk.impl.CallbackApiImpl;
 import com.shazam.wechat.sdk.impl.draft.DraftApiImpl;
 import com.shazam.wechat.sdk.impl.material.MaterialApiImpl;
+import com.shazam.wechat.sdk.impl.menu.MenuApiImpl;
 import com.shazam.wechat.sdk.impl.publish.PublishApiImpl;
 
 /**
@@ -49,6 +51,17 @@ import com.shazam.wechat.sdk.impl.publish.PublishApiImpl;
  *     .build();
  * PublishSubmitResponse publishResp = client.publish().submitPublish(publishRequest);
  *
+ * // 创建菜单
+ * MenuCreateRequest menuRequest = new MenuCreateRequest.Builder()
+ *     .addButton(new MenuButton.Builder()
+ *         .name("点击事件")
+ *         .asClick("CLICK_KEY"))
+ *     .addButton(new MenuButton.Builder()
+ *         .name("访问网页")
+ *         .asView("https://example.com"))
+ *     .build();
+ * client.menu().createMenu(menuRequest);
+ *
  * client.shutdown();
  * </pre>
  */
@@ -61,6 +74,7 @@ public class WechatClient {
     private final MaterialApi materialApi;
     private final DraftApi draftApi;
     private final PublishApi publishApi;
+    private final MenuApi menuApi;
 
     /**
      * 创建微信 SDK 客户端
@@ -75,6 +89,7 @@ public class WechatClient {
         this.materialApi = new MaterialApiImpl(httpClient, authApi);
         this.draftApi = new DraftApiImpl(httpClient, authApi);
         this.publishApi = new PublishApiImpl(httpClient, authApi);
+        this.menuApi = new MenuApiImpl(httpClient, authApi);
     }
 
     /**
@@ -120,6 +135,15 @@ public class WechatClient {
      */
     public PublishApi publish() {
         return publishApi;
+    }
+
+    /**
+     * 获取菜单管理 API
+     *
+     * @return MenuApi 实例
+     */
+    public MenuApi menu() {
+        return menuApi;
     }
 
     /**

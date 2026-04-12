@@ -4,7 +4,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.0+-red.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-一个简洁、高效的微信公众号 API SDK，提供认证、素材管理、草稿箱管理、发布等功能的封装。
+一个简洁、高效的微信公众号 API SDK，提供认证、素材管理、草稿箱管理、发布、菜单管理等功能的封装。
 
 ---
 
@@ -12,7 +12,7 @@
 
 - ✅ **简洁 API** - 流式构建器模式，代码清晰易读
 - ✅ **自动 Token 管理** - 内置缓存机制，自动刷新 access_token
-- ✅ **完整功能** - 支持认证、素材、草稿、发布等核心 API
+- ✅ **完整功能** - 支持认证、素材、草稿、发布、菜单等核心 API
 - ✅ **异常处理** - 统一的异常处理机制，详细的错误码说明
 - ✅ **易于扩展** - 模块化设计，支持自定义扩展
 
@@ -113,6 +113,40 @@ if (statusResp.isPublished()) {
 client.shutdown();
 ```
 
+### 4. 创建自定义菜单
+
+```java
+// 创建菜单
+MenuCreateRequest menuRequest = new MenuCreateRequest.Builder()
+    .addButton(new MenuButton.Builder()
+        .name("点击事件")
+        .asClick("CLICK_KEY"))
+    .addButton(new MenuButton.Builder()
+        .name("访问网页")
+        .asView("https://example.com"))
+    .addButton(new MenuButton.Builder()
+        .name("更多功能")
+        .addSubButton(new MenuButton.Builder()
+            .name("子菜单 1")
+            .asClick("SUB_1"))
+        .addSubButton(new MenuButton.Builder()
+            .name("子菜单 2")
+            .asView("https://example.com/sub"))
+        .build())
+    .build();
+
+MenuCreateResponse menuResponse = client.menu().createMenu(menuRequest);
+if (menuResponse.isSuccess()) {
+    System.out.println("菜单创建成功！");
+}
+
+// 查询菜单
+MenuGetResponse menuGetResponse = client.menu().getMenu();
+
+// 删除菜单
+MenuDeleteResponse deleteResponse = client.menu().deleteMenu();
+```
+
 ---
 
 ## 功能模块
@@ -185,6 +219,36 @@ PublishSubmitResponse response = client.publish().submitPublish(request);
 PublishGetResponse response = client.publish().getPublishStatus("publish_id");
 ```
 
+### 菜单管理 API (`client.menu()`)
+
+```java
+// 创建菜单
+MenuCreateRequest request = new MenuCreateRequest.Builder()
+    .addButton(new MenuButton.Builder()
+        .name("点击事件")
+        .asClick("CLICK_KEY"))
+    .addButton(new MenuButton.Builder()
+        .name("访问网页")
+        .asView("https://example.com"))
+    .addButton(new MenuButton.Builder()
+        .name("更多")
+        .addSubButton(new MenuButton.Builder()
+            .name("子菜单 1")
+            .asClick("SUB_1"))
+        .addSubButton(new MenuButton.Builder()
+            .name("子菜单 2")
+            .asView("https://example.com/sub"))
+        .build())
+    .build();
+MenuCreateResponse response = client.menu().createMenu(request);
+
+// 查询菜单
+MenuGetResponse response = client.menu().getMenu();
+
+// 删除菜单
+MenuDeleteResponse response = client.menu().deleteMenu();
+```
+
 ### 回调检测 API (`client.callback()`)
 
 ```java
@@ -241,6 +305,61 @@ DraftAddRequest request = new DraftAddRequest.Builder()
     .build();
 
 DraftAddResponse response = client.draft().addDraft(request);
+```
+
+### 菜单按钮类型
+
+| 类型 | 方法 | 说明 |
+|------|------|------|
+| `click` | `asClick(key)` | 点击推事件 |
+| `view` | `asView(url)` | 跳转网页 |
+| `miniprogram` | `asMiniprogram(appId, pagePath, url)` | 跳转小程序 |
+| `media_id` | `asMediaId(mediaId)` | 下发消息 |
+| `view_limited` | `asViewLimited(mediaId)` | 跳转图文 |
+| `scancode_push` | `asScanCodePush(key)` | 扫码推事件 |
+| `scancode_waitmsg` | `asScanCodeWaitMsg(key)` | 扫码 + 弹出提示 |
+| `pic_sysphoto` | `asPicSysPhoto(key)` | 系统拍照 |
+| `pic_photo_or_album` | `asPicPhotoOrAlbum(key)` | 拍照或相册 |
+| `pic_weixin` | `asPicWeiXin(key)` | 微信相册 |
+| `location_select` | `asLocationSelect(key)` | 地理位置 |
+
+### 菜单配置示例
+
+```java
+// 完整菜单配置（包含所有按钮类型）
+MenuCreateRequest request = new MenuCreateRequest.Builder()
+    // 点击推事件
+    .addButton(new MenuButton.Builder()
+        .name("点击事件")
+        .asClick("CLICK_EVENT"))
+    // 跳转网页
+    .addButton(new MenuButton.Builder()
+        .name("访问官网")
+        .asView("https://example.com"))
+    // 跳转小程序
+    .addButton(new MenuButton.Builder()
+        .name("小程序")
+        .asMiniprogram(
+            "wx1234567890abcdef",
+            "pages/index/index",
+            "https://example.com"))
+    // 扫码推事件
+    .addButton(new MenuButton.Builder()
+        .name("扫码")
+        .asScanCodePush("SCAN_CODE"))
+    // 带二级菜单
+    .addButton(new MenuButton.Builder()
+        .name("更多功能")
+        .addSubButton(new MenuButton.Builder()
+            .name("子菜单 1")
+            .asClick("SUB_1"))
+        .addSubButton(new MenuButton.Builder()
+            .name("子菜单 2")
+            .asView("https://example.com/sub"))
+        .build())
+    .build();
+
+client.menu().createMenu(request);
 ```
 
 ---
@@ -301,8 +420,10 @@ src/main/java/com/shazam/wechat/sdk/
 │   │   └── MaterialApi.java       # 素材管理 API
 │   ├── draft/
 │   │   └── DraftApi.java          # 草稿管理 API
-│   └── publish/
-│       └── PublishApi.java        # 发布管理 API
+│   ├── publish/
+│   │   └── PublishApi.java        # 发布管理 API
+│   └── menu/
+│       └── MenuApi.java           # 菜单管理 API
 ├── impl/
 │   ├── AbstractWechatApi.java     # API 抽象基类
 │   ├── AuthApiImpl.java           # 认证 API 实现
@@ -311,19 +432,26 @@ src/main/java/com/shazam/wechat/sdk/
 │   │   └── MaterialApiImpl.java   # 素材 API 实现
 │   ├── draft/
 │   │   └── DraftApiImpl.java      # 草稿 API 实现
-│   └── publish/
-│       └── PublishApiImpl.java    # 发布 API 实现
+│   ├── publish/
+│   │   └── PublishApiImpl.java    # 发布 API 实现
+│   └── menu/
+│       └── MenuApiImpl.java       # 菜单 API 实现
 ├── model/
 │   ├── request/                   # 请求模型
 │   │   ├── DraftAddRequest.java
 │   │   ├── DraftArticle.java
 │   │   ├── DraftUpdateRequest.java
 │   │   ├── PublishSubmitRequest.java
+│   │   ├── MenuButton.java
+│   │   ├── MenuCreateRequest.java
 │   │   └── ...
 │   └── response/                  # 响应模型
 │       ├── DraftAddResponse.java
 │       ├── DraftGetResponse.java
 │       ├── PublishSubmitResponse.java
+│       ├── MenuCreateResponse.java
+│       ├── MenuGetResponse.java
+│       ├── MenuDeleteResponse.java
 │       └── ...
 ├── http/
 │   ├── HttpClient.java            # HTTP 客户端
@@ -378,6 +506,11 @@ MIT License
 ---
 
 ## 版本历史
+
+### v1.1.0 (2026-04-12)
+- ✅ 菜单管理 API（创建、查询、删除）
+- ✅ 支持 11 种菜单按钮类型
+- ✅ 支持二级菜单配置
 
 ### v1.0.0 (2026-04-12)
 - ✅ 认证 API（access_token 获取）

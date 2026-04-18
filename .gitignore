@@ -129,3 +129,29 @@ dist/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# =======================================================
+# 敏感配置 - 不提交到 Git
+# =======================================================
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 包含 API Key 的配置文件
+application-local.yml
+application-local.properties
+application*.local.yml
+application*.local.properties
+
+# 密钥文件
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# 个人配置
+personal.yml
+personal.properties

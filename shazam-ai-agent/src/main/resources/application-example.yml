@@ -1,0 +1,74 @@
+# =======================================================
+# Shazam AI Agent 配置示例文件
+# =======================================================
+# 使用说明:
+# 1. 复制此文件为 application.yml
+# 2. 设置环境变量（见下方说明）
+# 3. 启动应用
+#
+# 环境变量设置:
+#   export OPENAI_API_KEY=sk-your-api-key-here
+#   export OPENAI_MODEL=gpt-4o-mini
+#   export AGENT_TEMPERATURE=0.7
+#
+# 或者创建 .env 文件（不会被 Git 跟踪）:
+#   cp .env.example .env
+#   # 编辑 .env 文件填入你的 API Key
+# =======================================================
+
+spring:
+  application:
+    name: shazam-ai-agent
+
+  # AI 配置 - 从环境变量读取敏感信息
+  ai:
+    openai:
+      # 【必填】从环境变量 OPENAI_API_KEY 读取
+      api-key: ${OPENAI_API_KEY:}
+      # 【可选】API 基础 URL，默认使用 OpenAI 官方
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+      chat:
+        options:
+          # 【可选】模型名称，默认 gpt-4o-mini
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          # 【可选】温度参数，默认 0.7
+          temperature: ${OPENAI_TEMPERATURE:0.7}
+
+# Shazam Agent 配置
+shazam:
+  agent:
+    enabled: true
+    # 【可选】提供商类型：openai, ollama, azure，默认 openai
+    provider: ${AGENT_PROVIDER:openai}
+    # 【可选】模型名称，默认 gpt-4o-mini
+    model: ${AGENT_MODEL:gpt-4o-mini}
+    # 【可选】温度参数，默认 0.7
+    temperature: ${AGENT_TEMPERATURE:0.7}
+    # 【可选】最大 token 数，默认 2048
+    max-tokens: ${AGENT_MAX_TOKENS:2048}
+    
+    # 工具调用配置
+    tools:
+      enabled: true
+      packages:
+        - com.shazam.agent.tools
+    
+    # 记忆配置
+    memory:
+      enabled: true
+      max-size: 100
+
+# 服务器配置
+server:
+  # 【可选】服务端口，默认 8080
+  port: ${SERVER_PORT:8080}
+
+# 日志配置
+logging:
+  level:
+    # 【可选】根日志级别，默认 INFO
+    root: ${LOG_LEVEL_ROOT:INFO}
+    # 【可选】Agent 日志级别，默认 DEBUG
+    com.shazam.agent: ${LOG_LEVEL_AGENT:DEBUG}
+    # 【可选】Spring AI 日志级别，默认 INFO
+    org.springframework.ai: ${LOG_LEVEL_AI:INFO}

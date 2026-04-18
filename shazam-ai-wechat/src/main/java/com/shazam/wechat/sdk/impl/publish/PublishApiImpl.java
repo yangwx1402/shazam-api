@@ -30,7 +30,7 @@ public class PublishApiImpl extends AbstractWechatApi implements PublishApi {
     /**
      * 获取 access_token，如果为空则尝试从 AuthApi 获取
      */
-    private String getAccessToken() {
+    public String getAccessToken() {
         String token = this.accessToken;
         if (token == null || token.isEmpty()) {
             token = authApi.getAccessToken();

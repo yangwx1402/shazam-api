@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: shazam-ai-start
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: ${OPENAI_TEMPERATURE:0.7}
+
+shazam:
+  agent:
+    enabled: true
+    provider: ${AGENT_PROVIDER:openai}
+    model: ${AGENT_MODEL:gpt-4o-mini}
+    temperature: ${AGENT_TEMPERATURE:0.7}
+    max-tokens: ${AGENT_MAX_TOKENS:2048}
+    tools:
+      enabled: true
+      packages:
+        - com.shazam.agent.tools
+    memory:
+      enabled: true
+      max-size: 100
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.shazam: ${LOG_LEVEL_SHAZAM:DEBUG}
+    org.springframework.ai: ${LOG_LEVEL_AI:INFO}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

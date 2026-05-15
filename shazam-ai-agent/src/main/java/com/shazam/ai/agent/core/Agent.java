@@ -2,6 +2,9 @@ package com.shazam.ai.agent.core;
 
 import reactor.core.publisher.Flux;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Agent 接口定义
  *
@@ -23,6 +26,16 @@ public interface Agent {
      * @return 系统提示词
      */
     String getSystemPrompt();
+
+    /**
+     * 获取 Agent 绑定的工具对象列表
+     * 每个对象中带有 @Tool 注解的方法会被注册为可调用工具
+     *
+     * @return 工具对象列表
+     */
+    default List<Object> getTools() {
+        return Collections.emptyList();
+    }
 
     /**
      * 执行 Agent 任务

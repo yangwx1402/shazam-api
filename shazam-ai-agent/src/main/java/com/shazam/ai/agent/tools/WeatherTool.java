@@ -1,7 +1,7 @@
 package com.shazam.ai.agent.tools;
 
-import com.shazam.ai.agent.tool.BaseTool;
-import com.shazam.ai.agent.tool.Tool;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.Random;
  * @since 1.0
  */
 @Component
-public class WeatherTool extends BaseTool {
+public class WeatherTool {
 
     private static final Map<String, String> CITY_WEATHER = new HashMap<>();
     private static final Random RANDOM = new Random();
@@ -29,50 +29,26 @@ public class WeatherTool extends BaseTool {
         CITY_WEATHER.put("杭州", "阴，24°C");
     }
 
-    @Override
-    public String getToolName() {
-        return "WeatherTool";
-    }
-
-    @Override
-    public String getToolDescription() {
-        return "查询指定城市的天气信息";
-    }
-
-    /**
-     * 查询天气
-     *
-     * @param city 城市名称
-     * @return 天气信息
-     */
-    @Tool(description = "查询城市天气，返回温度和天气状况", paramDescriptions = {"city: 城市名称，如北京、上海、广州等"})
-    public String getWeather(String city) {
+    @Tool(description = "查询城市天气，返回温度和天气状况")
+    public String getWeather(@ToolParam(description = "城市名称，如北京、上海、广州等") String city) {
         if (city == null || city.trim().isEmpty()) {
             return "请提供城市名称";
         }
 
-        // 模拟天气查询
         String weather = CITY_WEATHER.get(city);
         if (weather != null) {
             return city + "：" + weather;
         }
 
-        // 随机生成天气信息（模拟）
         String[] conditions = {"晴", "多云", "阴", "小雨", "大雨"};
         String condition = conditions[RANDOM.nextInt(conditions.length)];
         int temperature = 20 + RANDOM.nextInt(15);
-        
+
         return city + "：" + condition + "，" + temperature + "°C";
     }
 
-    /**
-     * 查询多城市天气
-     *
-     * @param cities 城市列表
-     * @return 多城市天气信息
-     */
-    @Tool(description = "查询多个城市的天气信息", paramDescriptions = {"cities: 城市名称列表"})
-    public String getMultiCityWeather(String[] cities) {
+    @Tool(description = "查询多个城市的天气信息")
+    public String getMultiCityWeather(@ToolParam(description = "城市名称列表") String[] cities) {
         if (cities == null || cities.length == 0) {
             return "请提供城市名称列表";
         }

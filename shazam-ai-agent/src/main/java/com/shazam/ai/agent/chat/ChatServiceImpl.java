@@ -5,7 +5,7 @@ import com.shazam.ai.agent.core.AgentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,11 +25,9 @@ public class ChatServiceImpl implements ChatService {
     private static final Logger logger = LoggerFactory.getLogger(ChatServiceImpl.class);
 
     private final ChatClient chatClient;
-    private final ChatModel chatModel;
 
-    public ChatServiceImpl(ChatClient chatClient, ChatModel chatModel) {
+    public ChatServiceImpl(ChatClient chatClient) {
         this.chatClient = chatClient;
-        this.chatModel = chatModel;
     }
 
     @Override
@@ -46,11 +44,14 @@ public class ChatServiceImpl implements ChatService {
         logger.debug("Chat with context: {}, prompt: {}", context, prompt);
 
         try {
-            ChatResponse chatResponse = chatClient.prompt()
-                    .user(prompt)
-                    .call()
-                    .chatResponse();
+            ChatClient.ChatClientRequestSpec spec = chatClient.prompt()
+                    .user(prompt);
 
+            if (context.isMemoryEnabled()) {
+                spec.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, context.getSessionId()));
+            }
+
+            ChatResponse chatResponse = spec.call().chatResponse();
             return buildResponse(chatResponse);
 
         } catch (Exception e) {
@@ -96,9 +97,6 @@ public class ChatServiceImpl implements ChatService {
         return responses;
     }
 
-    /**
-     * 构建响应对象
-     */
     private AgentResponse buildResponse(ChatResponse chatResponse) {
         AgentResponse response = new AgentResponse();
 
@@ -108,9 +106,9 @@ public class ChatServiceImpl implements ChatService {
             if (chatResponse.getMetadata() != null && chatResponse.getMetadata().getUsage() != null) {
                 var usage = chatResponse.getMetadata().getUsage();
                 AgentResponse.TokenUsage tokenUsage = new AgentResponse.TokenUsage();
-                tokenUsage.setInputTokens(usage.getPromptTokens() != null ? usage.getPromptTokens().longValue() : 0L);
-                tokenUsage.setOutputTokens(usage.getGenerationTokens() != null ? usage.getGenerationTokens().longValue() : 0L);
-                tokenUsage.setTotalTokens(usage.getTotalTokens() != null ? usage.getTotalTokens().longValue() : 0L);
+                tokenUsage.setInputTokens((int) usage.getPromptTokens());
+                tokenUsage.setOutputTokens((int) usage.getCompletionTokens());
+                tokenUsage.setTotalTokens((int) usage.getTotalTokens());
                 response.setTokenUsage(tokenUsage);
             }
         }

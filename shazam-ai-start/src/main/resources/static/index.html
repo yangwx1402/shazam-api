@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shazam AI Agent</title>
+    
+    <!-- Element Plus CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+    <div id="app" v-cloak>
+        <el-container class="main-container">
+            <!-- Header -->
+            <el-header class="main-header">
+                <div class="header-left">
+                    <h1>🤖 Shazam AI Agent</h1>
+                </div>
+                <div class="header-right">
+                    <el-tag size="small">{{ config.provider }} / {{ config.model }}</el-tag>
+                </div>
+            </el-header>
+
+            <el-main class="main-content">
+                <!-- Settings Panel -->
+                <el-card class="settings-card" shadow="never">
+                    <template #header>
+                        <div class="card-header">
+                            <span>⚙️ 配置</span>
+                        </div>
+                    </template>
+                    
+                    <el-row :gutter="20">
+                        <el-col :span="6">
+                            <el-form-item label="Agent">
+                                <el-select v-model="selectedAgent" placeholder="选择 Agent" size="default">
+                                    <el-option
+                                        v-for="agent in agents"
+                                        :key="agent.name"
+                                        :label="agent.name"
+                                        :value="agent.name">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-switch v-model="settings.toolCallEnabled" active-text="工具调用"></el-switch>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-switch v-model="settings.memoryEnabled" active-text="记忆"></el-switch>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-switch v-model="settings.showReasoning" active-text="推理链路"></el-switch>
+                        </el-col>
+                    </el-row>
+                </el-card>
+
+                <!-- Chat Messages -->
+                <el-card class="chat-card" shadow="never">
+                    <template #header>
+                        <div class="card-header">
+                            <span>💬 对话</span>
+                            <el-button size="small" @click="clearChat" :disabled="messages.length === 0">清空</el-button>
+                        </div>
+                    </template>
+
+                    <div class="messages-container" ref="messagesContainer">
+                        <div v-if="messages.length === 0" class="empty-state">
+                            <el-empty description="开始与 Agent 对话吧"></el-empty>
+                        </div>
+                        
+                        <div v-for="(msg, index) in messages" :key="index" 
+                             :class="['message', msg.role === 'user' ? 'user-message' : 'agent-message']">
+                            <div class="message-header">
+                                <el-tag size="small" :type="msg.role === 'user' ? 'primary' : 'success'">
+                                    {{ msg.role === 'user' ? '👤 用户' : '🤖 Agent' }}
+                                </el-tag>
+                                <span class="message-time">{{ msg.time }}</span>
+                            </div>
+                            
+                            <div class="message-content">{{ msg.content }}</div>
+
+                            <!-- Token Usage -->
+                            <div v-if="msg.tokenUsage" class="token-usage">
+                                <el-tag size="small" type="info">
+                                    Tokens: {{ msg.tokenUsage.inputTokens }} in / {{ msg.tokenUsage.outputTokens }} out / {{ msg.tokenUsage.totalTokens }} total
+                                </el-tag>
+                            </div>
+
+                            <!-- Reasoning Trace -->
+                            <div v-if="settings.showReasoning && msg.reasoningTrace && msg.reasoningTrace.length > 0" 
+                                 class="reasoning-trace">
+                                <el-collapse>
+                                    <el-collapse-item title="🔍 推理链路">
+                                        <div v-for="(step, stepIndex) in msg.reasoningTrace" :key="stepIndex"
+                                             :class="['reasoning-step', 'step-' + step.type.toLowerCase()]">
+                                            <div class="step-header">
+                                                <el-tag size="small" :type="getStepType(step.type)">
+                                                    {{ step.type }}
+                                                </el-tag>
+                                                <span v-if="step.toolName" class="tool-name">{{ step.toolName }}</span>
+                                            </div>
+                                            <div class="step-content">{{ step.content }}</div>
+                                        </div>
+                                        <div v-if="msg.iterationsUsed" class="iterations-info">
+                                            迭代次数: {{ msg.iterationsUsed }}
+                                        </div>
+                                    </el-collapse-item>
+                                </el-collapse>
+                            </div>
+                        </div>
+
+                        <!-- Loading Indicator -->
+                        <div v-if="loading" class="loading-message">
+                            <el-tag type="info" size="large">Agent 正在思考...</el-tag>
+                        </div>
+                    </div>
+                </el-card>
+
+                <!-- Input Area -->
+                <el-card class="input-card" shadow="never">
+                    <el-form @submit.prevent="sendMessage">
+                        <el-input
+                            v-model="inputMessage"
+                            type="textarea"
+                            :rows="3"
+                            placeholder="输入提示词... 例如：今天星期几？3.14 + 2.72 等于多少？"
+                            @keydown.enter.ctrl="sendMessage"
+                            :disabled="loading">
+                        </el-input>
+                        <div class="input-actions">
+                            <el-button @click="clearInput" :disabled="!inputMessage">清空</el-button>
+                            <el-button type="primary" @click="sendMessage" :loading="loading" :disabled="!inputMessage.trim()">
+                                发送 (Ctrl+Enter)
+                            </el-button>
+                        </div>
+                    </el-form>
+                </el-card>
+            </el-main>
+        </el-container>
+    </div>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- App JS -->
+    <script src="js/app.js"></script>
+</body>
+</html>

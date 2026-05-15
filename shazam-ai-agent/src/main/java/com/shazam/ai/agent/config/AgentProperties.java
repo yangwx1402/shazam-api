@@ -2,9 +2,6 @@ package com.shazam.ai.agent.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Agent 配置属性
  *
@@ -48,6 +45,11 @@ public class AgentProperties {
      * 记忆配置
      */
     private MemoryConfig memory = new MemoryConfig();
+
+    /**
+     * ReAct 推理配置
+     */
+    private ReactConfig react = new ReactConfig();
 
     public boolean isEnabled() {
         return enabled;
@@ -105,6 +107,14 @@ public class AgentProperties {
         this.memory = memory;
     }
 
+    public ReactConfig getReact() {
+        return react;
+    }
+
+    public void setReact(ReactConfig react) {
+        this.react = react;
+    }
+
     /**
      * 工具调用配置
      */
@@ -115,25 +125,12 @@ public class AgentProperties {
          */
         private boolean enabled = true;
 
-        /**
-         * 扫描工具的包路径列表
-         */
-        private List<String> packages = new ArrayList<>();
-
         public boolean isEnabled() {
             return enabled;
         }
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
-        }
-
-        public List<String> getPackages() {
-            return packages;
-        }
-
-        public void setPackages(List<String> packages) {
-            this.packages = packages;
         }
     }
 
@@ -148,9 +145,9 @@ public class AgentProperties {
         private boolean enabled = true;
 
         /**
-         * 最大记忆条数
+         * 消息窗口大小（最大保留消息条数）
          */
-        private Integer maxSize = 100;
+        private int maxMessages = 20;
 
         public boolean isEnabled() {
             return enabled;
@@ -160,12 +157,57 @@ public class AgentProperties {
             this.enabled = enabled;
         }
 
-        public Integer getMaxSize() {
-            return maxSize;
+        public int getMaxMessages() {
+            return maxMessages;
         }
 
-        public void setMaxSize(Integer maxSize) {
-            this.maxSize = maxSize;
+        public void setMaxMessages(int maxMessages) {
+            this.maxMessages = maxMessages;
+        }
+    }
+
+    /**
+     * ReAct 推理配置
+     */
+    public static class ReactConfig {
+
+        /**
+         * 是否启用 ReAct 推理
+         */
+        private boolean enabled = true;
+
+        /**
+         * 最大推理迭代次数
+         */
+        private int maxIterations = 10;
+
+        /**
+         * 是否在响应中包含推理链路
+         */
+        private boolean includeTrace = true;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getMaxIterations() {
+            return maxIterations;
+        }
+
+        public void setMaxIterations(int maxIterations) {
+            this.maxIterations = maxIterations;
+        }
+
+        public boolean isIncludeTrace() {
+            return includeTrace;
+        }
+
+        public void setIncludeTrace(boolean includeTrace) {
+            this.includeTrace = includeTrace;
         }
     }
 }

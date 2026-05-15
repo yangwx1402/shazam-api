@@ -25,17 +25,21 @@ shazam:
     temperature: ${AGENT_TEMPERATURE:0.7}
     # 最大 token 数
     max-tokens: ${AGENT_MAX_TOKENS:2048}
-    
-    # 工具调用配置
-    tools:
+
+    # ReAct 推理配置
+    react:
       enabled: true
-      packages:
-        - com.shazam.agent.tools
-    
+      max-iterations: 10
+      include-trace: true
+
     # 记忆配置
     memory:
       enabled: true
-      max-size: 100
+      max-messages: 20
+
+    # 工具调用配置
+    tools:
+      enabled: true
 
 # 服务器配置
 server:
@@ -45,5 +49,5 @@ server:
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
-    com.shazam.agent: ${LOG_LEVEL_AGENT:DEBUG}
+    com.shazam.ai.agent: ${LOG_LEVEL_AGENT:DEBUG}
     org.springframework.ai: ${LOG_LEVEL_AI:INFO}

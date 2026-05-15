@@ -1,11 +1,10 @@
 package com.shazam.ai.agent.core;
 
-import com.shazam.ai.agent.chat.ChatService;
 import com.shazam.ai.agent.config.AgentProperties;
-import com.shazam.ai.agent.tool.ToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,8 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 /**
- * Agent 基类实现
+ * Agent 基类实现（Level 1）
+ * 使用 ChatClient 托管 Tool Call 循环，Spring AI 内部自动处理工具调用
  *
  * @author shazam
  * @since 1.0
@@ -29,12 +29,6 @@ public abstract class BaseAgent implements Agent {
     protected ChatModel chatModel;
 
     @Autowired(required = false)
-    protected ChatService chatService;
-
-    @Autowired(required = false)
-    protected ToolRegistry toolRegistry;
-
-    @Autowired(required = false)
     protected AgentProperties agentProperties;
 
     @Override
@@ -47,25 +41,32 @@ public abstract class BaseAgent implements Agent {
         logger.debug("Executing agent: {}, prompt: {}, context: {}", getName(), prompt, context);
 
         try {
-            // 构建系统提示词
             String systemPrompt = buildSystemPrompt(context);
 
-            // 执行调用
-            ChatResponse chatResponse;
+            // 构建 ChatClient 调用链
+            ChatClient.ChatClientRequestSpec spec = chatClient.prompt();
+
+            // 设置系统提示词
             if (StringUtils.hasText(systemPrompt)) {
-                chatResponse = chatClient.prompt()
-                        .system(systemPrompt)
-                        .user(prompt)
-                        .call()
-                        .chatResponse();
-            } else {
-                chatResponse = chatClient.prompt()
-                        .user(prompt)
-                        .call()
-                        .chatResponse();
+                spec.system(systemPrompt);
             }
 
-            // 构建响应
+            // 设置用户提示词
+            spec.user(prompt);
+
+            // 绑定工具
+            if (context.isToolCallEnabled() && !getTools().isEmpty()) {
+                spec.tools(getTools().toArray());
+            }
+
+            // 绑定会话记忆（通过 advisor 参数传递 conversationId）
+            if (context.isMemoryEnabled()) {
+                spec.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, context.getSessionId()));
+            }
+
+            // 执行调用（Spring AI 内部自动处理 Tool Call 循环）
+            ChatResponse chatResponse = spec.call().chatResponse();
+
             return buildResponse(chatResponse);
 
         } catch (Exception e) {
@@ -85,18 +86,25 @@ public abstract class BaseAgent implements Agent {
 
         try {
             String systemPrompt = buildSystemPrompt(context);
+
+            ChatClient.ChatClientRequestSpec spec = chatClient.prompt();
+
             if (StringUtils.hasText(systemPrompt)) {
-                return chatClient.prompt()
-                        .system(systemPrompt)
-                        .user(prompt)
-                        .stream()
-                        .content();
-            } else {
-                return chatClient.prompt()
-                        .user(prompt)
-                        .stream()
-                        .content();
+                spec.system(systemPrompt);
             }
+
+            spec.user(prompt);
+
+            if (context.isToolCallEnabled() && !getTools().isEmpty()) {
+                spec.tools(getTools().toArray());
+            }
+
+            if (context.isMemoryEnabled()) {
+                spec.advisors(a -> a.param(ChatMemory.CONVERSATION_ID, context.getSessionId()));
+            }
+
+            return spec.stream().content();
+
         } catch (Exception e) {
             logger.error("Agent streaming failed: {}", e.getMessage(), e);
             return Flux.error(e);
@@ -123,13 +131,12 @@ public abstract class BaseAgent implements Agent {
         if (chatResponse != null && chatResponse.getResult() != null) {
             response.setContent(chatResponse.getResult().getOutput().getText());
 
-            // 设置 token 使用统计
             if (chatResponse.getMetadata() != null && chatResponse.getMetadata().getUsage() != null) {
                 var usage = chatResponse.getMetadata().getUsage();
                 AgentResponse.TokenUsage tokenUsage = new AgentResponse.TokenUsage();
-                tokenUsage.setInputTokens(usage.getPromptTokens() != null ? usage.getPromptTokens().longValue() : 0L);
-                tokenUsage.setOutputTokens(usage.getGenerationTokens() != null ? usage.getGenerationTokens().longValue() : 0L);
-                tokenUsage.setTotalTokens(usage.getTotalTokens() != null ? usage.getTotalTokens().longValue() : 0L);
+                tokenUsage.setInputTokens((int) usage.getPromptTokens());
+                tokenUsage.setOutputTokens((int) usage.getCompletionTokens());
+                tokenUsage.setTotalTokens((int) usage.getTotalTokens());
                 response.setTokenUsage(tokenUsage);
             }
         }

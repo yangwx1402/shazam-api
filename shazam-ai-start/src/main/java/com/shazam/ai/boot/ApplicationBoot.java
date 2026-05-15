@@ -23,11 +23,11 @@ public class ApplicationBoot {
     public static void main(String[] args) {
         // 加载 .env 文件环境变量
         Dotenv dotenv = Dotenv.configure()
-                .directory("./shazam-ai-agent")
+                .directory("./shazam-ai-start")
                 .ignoreIfMissing()
                 .load();
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
-
+        System.getProperties().forEach((key, value) -> System.out.println(key + "=" + value));
         SpringApplication.run(ApplicationBoot.class, args);
         System.out.println("========================================");
         System.out.println("  Shazam AI 启动成功!");

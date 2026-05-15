@@ -65,9 +65,9 @@ public class AgentResponseTest {
     @Test
     public void testTokenUsage() {
         AgentResponse.TokenUsage usage = new AgentResponse.TokenUsage();
-        usage.setInputTokens(100L);
-        usage.setOutputTokens(50L);
-        usage.setTotalTokens(150L);
+        usage.setInputTokens(100);
+        usage.setOutputTokens(50);
+        usage.setTotalTokens(150);
 
         response.setTokenUsage(usage);
 

@@ -1,7 +1,9 @@
 package com.shazam.ai.agent.core;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -12,40 +14,23 @@ import java.util.Map;
  */
 public class AgentResponse {
 
-    /**
-     * 响应内容
-     */
     private String content;
-
-    /**
-     * 使用的模型
-     */
     private String model;
-
-    /**
-     * 使用的 token 数
-     */
     private TokenUsage tokenUsage;
-
-    /**
-     * 响应时间戳
-     */
     private Instant timestamp;
-
-    /**
-     * 额外数据
-     */
     private Map<String, Object> data;
-
-    /**
-     * 是否成功
-     */
     private boolean success;
+    private String errorMessage;
 
     /**
-     * 错误信息
+     * 推理链路（仅 ReAct Agent 使用）
      */
-    private String errorMessage;
+    private List<ReasoningStep> reasoningTrace = new ArrayList<>();
+
+    /**
+     * 推理迭代次数
+     */
+    private int iterationsUsed;
 
     public AgentResponse() {
         this.timestamp = Instant.now();
@@ -68,6 +53,12 @@ public class AgentResponse {
         response.setErrorMessage(errorMessage);
         return response;
     }
+
+    public boolean hasReasoningTrace() {
+        return reasoningTrace != null && !reasoningTrace.isEmpty();
+    }
+
+    // --- Getters and Setters ---
 
     public String getContent() {
         return content;
@@ -133,56 +124,65 @@ public class AgentResponse {
         this.errorMessage = errorMessage;
     }
 
+    public List<ReasoningStep> getReasoningTrace() {
+        return reasoningTrace;
+    }
+
+    public void setReasoningTrace(List<ReasoningStep> reasoningTrace) {
+        this.reasoningTrace = reasoningTrace;
+    }
+
+    public void addReasoningStep(ReasoningStep step) {
+        this.reasoningTrace.add(step);
+    }
+
+    public int getIterationsUsed() {
+        return iterationsUsed;
+    }
+
+    public void setIterationsUsed(int iterationsUsed) {
+        this.iterationsUsed = iterationsUsed;
+    }
+
     /**
      * Token 使用统计
      */
     public static class TokenUsage {
-        
-        /**
-         * 输入 token 数
-         */
-        private Long inputTokens;
 
-        /**
-         * 输出 token 数
-         */
-        private Long outputTokens;
-
-        /**
-         * 总 token 数
-         */
-        private Long totalTokens;
+        private int inputTokens;
+        private int outputTokens;
+        private int totalTokens;
 
         public TokenUsage() {
         }
 
-        public TokenUsage(Long inputTokens, Long outputTokens, Long totalTokens) {
+        public TokenUsage(int inputTokens, int outputTokens, int totalTokens) {
             this.inputTokens = inputTokens;
             this.outputTokens = outputTokens;
             this.totalTokens = totalTokens;
         }
 
-        public Long getInputTokens() {
+        public int getInputTokens() {
             return inputTokens;
         }
 
-        public void setInputTokens(Long inputTokens) {
+        public void setInputTokens(int inputTokens) {
             this.inputTokens = inputTokens;
         }
 
-        public Long getOutputTokens() {
+        public int getOutputTokens() {
             return outputTokens;
         }
 
-        public void setOutputTokens(Long outputTokens) {
+        public void setOutputTokens(int outputTokens) {
             this.outputTokens = outputTokens;
         }
 
-        public Long getTotalTokens() {
+        public int getTotalTokens() {
             return totalTokens;
         }
 
-        public void setTotalTokens(Long totalTokens) {
+        public void setTotalTokens(int totalTokens) {
             this.totalTokens = totalTokens;
         }
     }

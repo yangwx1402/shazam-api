@@ -18,10 +18,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>3.3.0</spring-boot.version>
-        <spring-ai.version>1.0.0-M6</spring-ai.version>
-        <jackson.version>2.15.2</jackson.version>
-        <slf4j.version>2.0.9</slf4j.version>
+        <spring-boot.version>3.4.5</spring-boot.version>
+        <spring-ai.version>1.0.0</spring-ai.version>
         <junit-version>4.13.2</junit-version>
         <!-- Maven 插件版本 -->
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
@@ -44,27 +42,13 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spring AI BOM (需要使用 Spring Milestones 仓库) -->
+            <!-- Spring AI BOM -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
                 <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <!-- JSON 处理 -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-
-            <!-- 日志 API -->
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
             </dependency>
 
             <!-- 测试依赖 -->
@@ -76,17 +60,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <repositories>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <build>
         <pluginManagement>

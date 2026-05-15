@@ -37,6 +37,11 @@ public class AgentContext {
      */
     private boolean memoryEnabled = true;
 
+    /**
+     * ReAct 最大迭代次数（0 表示使用配置默认值）
+     */
+    private int maxIterations = 0;
+
     public AgentContext() {
         this.sessionId = UUID.randomUUID().toString();
         this.data = new HashMap<>();
@@ -120,6 +125,14 @@ public class AgentContext {
         this.memoryEnabled = memoryEnabled;
     }
 
+    public int getMaxIterations() {
+        return maxIterations;
+    }
+
+    public void setMaxIterations(int maxIterations) {
+        this.maxIterations = maxIterations;
+    }
+
     @Override
     public String toString() {
         return "AgentContext{" +
@@ -127,6 +140,7 @@ public class AgentContext {
                 ", userId='" + userId + '\'' +
                 ", toolCallEnabled=" + toolCallEnabled +
                 ", memoryEnabled=" + memoryEnabled +
+                ", maxIterations=" + maxIterations +
                 '}';
     }
 }

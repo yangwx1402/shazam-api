@@ -1,12 +1,14 @@
 package com.shazam.ai.agent.config;
 
-import com.shazam.ai.agent.core.Agent;
-import com.shazam.ai.agent.provider.AiProvider;
 import com.shazam.ai.agent.provider.AiProviderFactory;
-import com.shazam.ai.agent.tool.ToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,6 +41,43 @@ public class AiAutoConfig {
     }
 
     /**
+     * 聊天记忆存储仓库
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "shazam.agent.memory", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public ChatMemoryRepository chatMemoryRepository() {
+        logger.info("Initializing InMemoryChatMemoryRepository");
+        return new InMemoryChatMemoryRepository();
+    }
+
+    /**
+     * 聊天记忆（消息窗口策略）
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "shazam.agent.memory", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public ChatMemory chatMemory(ChatMemoryRepository repository, AgentProperties properties) {
+        int maxMessages = properties.getMemory().getMaxMessages();
+        logger.info("Initializing MessageWindowChatMemory with maxMessages: {}", maxMessages);
+        return MessageWindowChatMemory.builder()
+                .chatMemoryRepository(repository)
+                .maxMessages(maxMessages)
+                .build();
+    }
+
+    /**
+     * 消息记忆 Advisor
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "shazam.agent.memory", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public MessageChatMemoryAdvisor messageChatMemoryAdvisor(ChatMemory chatMemory) {
+        logger.info("Initializing MessageChatMemoryAdvisor");
+        return MessageChatMemoryAdvisor.builder(chatMemory).build();
+    }
+
+    /**
      * ChatClient Builder
      */
     @Bean
@@ -49,25 +88,17 @@ public class AiAutoConfig {
     }
 
     /**
-     * ChatClient
+     * ChatClient（绑定默认 Memory Advisor）
      */
     @Bean
     @ConditionalOnMissingBean
-    public ChatClient chatClient(ChatClient.Builder builder) {
-        logger.info("Initializing ChatClient");
+    public ChatClient chatClient(ChatClient.Builder builder,
+                                 MessageChatMemoryAdvisor memoryChatMemoryAdvisor,
+                                 AgentProperties properties) {
+        logger.info("Initializing ChatClient with memory advisor");
+        if (properties.getMemory().isEnabled()) {
+            builder.defaultAdvisors(memoryChatMemoryAdvisor);
+        }
         return builder.build();
-    }
-
-    /**
-     * 工具注册中心
-     */
-    @Bean
-    @ConditionalOnProperty(prefix = "shazam.agent.tools", name = "enabled", havingValue = "true", matchIfMissing = true)
-    @ConditionalOnMissingBean
-    public ToolRegistry toolRegistry(AgentProperties properties) {
-        logger.info("Initializing ToolRegistry with packages: {}", properties.getTools().getPackages());
-        ToolRegistry registry = new ToolRegistry();
-        registry.setScanPackages(properties.getTools().getPackages());
-        return registry;
     }
 }
